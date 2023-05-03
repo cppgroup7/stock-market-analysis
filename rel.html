@@ -1,0 +1,171 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    *, *:before, *:after, ul, li, a, button, input, h1, h2, h3, h4, h5, h6, p, img, image, svg, path, g {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background-color: transparent;
+      border: none;
+      text-decoration: none;
+      font-family: 'Roboto';
+      user-select: none;
+      list-style: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #eee;
+      font-family: 'Roboto';
+    }
+    li {
+      opacity: 0;
+      animation: fadeIn 0.4s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      100% {
+        opacity: 1;
+      }
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 650px;
+      margin: 0 auto;
+      padding-bottom: 70px;
+      overflow-x: hidden;
+      word-break: break-all;
+    }
+    li {
+      padding: 10px 20px;
+      color: #34495e;
+      word-break: break-all;
+    }
+    li span {
+      color: #e74c3c;
+      font-weight: 700;
+    }
+    input.message {
+      width: 100%;
+      max-width: 650px;
+      position: fixed;
+      bottom: 0;
+      height: 60px;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.12);
+      padding: 0 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    input.message:focus {
+      outline: none;
+    }
+    .initModal {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      left: 0;
+      top: 0;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .initModal h3 {
+      font-weight: 300;
+      color: #777;
+    }
+    .initModal input.username {
+      width: 350px;
+      height: 60px;
+      background-color: #eee;
+      padding: 0 15px;
+      margin-top: 25px;
+      color: #444;
+    }
+    .initModal input.username:focus {
+      outline: none;
+    }
+    
+  </style>
+</head>
+<body>
+<div class="wrapper"></div>
+
+<input class="message" type="text" placeholder="Enter message and press enter"/>
+
+<div class="initModal">
+	<h3>What's your name?</h3>
+	<input type="text" class="username" placeholder="Enter your name and press enter"/>
+</div>
+</body>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+//If you fork this, please change this database link to your own.
+var config = {
+
+  apiKey: "AIzaSyBqgrvVDwcQIKc4D-fTWs8OF8slV2qtJMQ",
+  authDomain: "cmt2-19f2e.firebaseapp.com",
+  databaseURL: "https://cmt2-19f2e-default-rtdb.firebaseio.com/",
+};
+  firebase.initializeApp(config);
+  var fb = firebase.database().ref();
+
+var messages = fb.child("messages");
+var btn = $('button');
+var wrap = $('.wrapper');
+var input = $('input.message');
+var usernameInput = $('input.username');
+
+var user = [];
+
+(function($) {
+	$.sanitize = function(input) {
+		var output = input.replace(/<script[^>]*?>.*?<\/script>/gi, '').
+					 replace(/<[\/\!]*?[^<>]*?>/gi, '').
+					 replace(/<style[^>]*?>.*?<\/style>/gi, '').
+					 replace(/<![\s\S]*?--[ \t\n\r]*>/gi, '');
+	    return output;
+	};
+})(jQuery);
+
+
+usernameInput.on('keyup', function(e) {
+	if (e.keyCode === 13 && usernameInput.val().length > 0) {
+		var getTxt = usernameInput.val();
+		user.push(getTxt);
+		usernameInput.val('');
+		$('.initModal').css('display', 'none');
+		console.log(user);
+	}
+});
+
+
+
+input.on('keyup', function(e) {
+	var curUsername = user.join();
+	if (e.keyCode === 13 && input.val().length > 0) {
+		var getTxt = input.val();
+		messages.push({
+			user: curUsername,
+			message: getTxt
+		});
+		input.val('');
+	}
+});
+
+messages.limitToLast(100).on("child_added", function(snap) {
+	wrap.append('<li><span>' + $.sanitize(snap.val().user) + ':</span> ' + $.sanitize(snap.val().message) + '</li>');
+	window.scrollTo(0,document.body.scrollHeight);
+});
+</script>
+</html>
